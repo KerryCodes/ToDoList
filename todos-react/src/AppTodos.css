@@ -1,0 +1,19 @@
+li{
+  width: 300px;
+  height: 25px;
+}
+
+li span{
+  display: inline-block;
+  width: 80%;
+}
+
+li button{
+  float: right;
+}
+
+.completed{
+  text-decoration: line-through;
+  opacity: 0.3;
+  transition: opacity 0.5s;
+}

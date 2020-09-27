@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>todos-js</title>
+  <style>
+    .textEl{
+      display: none;
+    }
+    .completed span{
+      text-decoration: line-through;
+      opacity: 0.3;
+      transition: opacity 0.5s;
+    }
+    li{
+      width: 200px;
+    }
+    li button{
+      float: right;
+    }
+    .editing span{
+      display: none;
+    }
+    .editing input{
+      display:inline-block;
+    }
+    .list:empty + #state {
+      display: none;
+    }
+    
+
+  </style>
+</head>
+<body>
+
+  <h1>todos</h1>
+  <div>
+    <input type="checkbox" class="checkAll">
+    <input type="text" class="textIn">
+  </div>
+  <ul class="list"></ul>
+  <div id="state">
+    <span id="items">0</span><span> items left</span>
+    <label><input type="radio" name="state" id="all" checked>All</label>
+    <label><input type="radio" name="state" id="active">Active</label>
+    <label><input type="radio" name="state" id="completed">Completed</label>
+    <button id="clear">Clear completed</button>
+  </div>
+
+  <script>
+    var textIn= document.querySelector('.textIn')
+    var list= document.querySelector('.list')
+    var checkAll= document.querySelector('.checkAll')
+    var state= document.querySelector('#state')
+    var items= document.querySelector('#items')
+    var all= document.querySelector('#all')
+    var active= document.querySelector('#active')
+    var completed= document.querySelector('#completed')
+    var clear= document.querySelector('#clear')
+
+
+    textIn.addEventListener('keydown', e=>{
+      if(e.key === 'Enter' && textIn.value !== ''){
+        let liEl= document.createElement('li')
+        let checkboxEl= document.createElement('input')
+        let spanEl= document.createElement('span')
+        let textEl= document.createElement('input')
+        let buttEl= document.createElement('button')
+
+
+        liEl.classList.add('active')
+        checkboxEl.type= 'checkbox'
+        checkboxEl.classList.add('checkboxEl')
+        spanEl.textContent= textIn.value
+        textEl.type= 'text'
+        textEl.classList.add('textEl')
+        textEl.value= textIn.value
+        buttEl.textContent= 'X'
+        liEl.append(checkboxEl, spanEl, textEl, buttEl)
+        list.append(liEl)
+        textIn.value= ''
+        checkAllUpdate()
+        items.textContent= list.children.length
+      }
+    })
+
+    list.addEventListener('click', e=>{
+      let parentLi= e.target.parentNode
+
+      if(e.target.matches("input[type='checkbox']")){
+        if(e.target.checked){
+          parentLi.classList.remove('active')
+          parentLi.classList.add('completed')
+        }else{
+          parentLi.classList.remove('completed')
+          parentLi.classList.add('active')
+          checkAll.checked= false
+        }
+      }else if(e.target.matches("button")){
+        list.removeChild(parentLi)
+      }
+      checkAllUpdate()
+      items.textContent= list.children.length
+    })
+
+    list.addEventListener('dblclick', e=>{
+      let liEl= e.target
+      let textEl= e.target.querySelector("input[type='text']")
+      let spanEl= e.target.querySelector("span")
+
+      if(e.target.matches('li')){
+        e.target.classList.add('editing')
+        textEl.focus()
+        textEl.addEventListener('keydown', down)
+        textEl.addEventListener('blur', blur)
+      }
+
+      function down(e){
+        if (e.key === 'Enter') {
+          spanEl.textContent = textEl.value
+          liEl.classList.remove('editing')
+          textEl.removeEventListener('keydown', down)
+          textEl.removeEventListener('blur', blur)
+        }
+      }
+      function blur(e) {
+        spanEl.textContent = textEl.value
+        liEl.classList.remove('editing')
+        textEl.removeEventListener('keydown', down)
+        textEl.removeEventListener('blur', blur)
+      }
+    })
+    
+    function checkAllUpdate(){
+      if(!list.querySelectorAll('input:first-child:not(:checked)').length){
+        checkAll.checked= true
+      }else{
+        checkAll.checked= false
+      }
+      if(!list.children.length){
+        checkAll.checked= false
+      }
+    }
+
+    checkAll.addEventListener('change', e=>{
+      let allBox= document.querySelectorAll('.checkboxEl')
+
+      if(checkAll.checked){
+        allBox.forEach(el => {
+          if(!el.checked){
+            el.click()
+          }
+        })
+      }else{
+        allBox.forEach(el => {
+          if(el.checked){
+            el.click()
+          }
+        })
+      }
+    })
+
+    state.addEventListener('click', e=>{
+      let allLi= document.querySelectorAll('li')
+      let activeLi= document.querySelectorAll('.active')
+      let completedLi= document.querySelectorAll('.completed')
+      
+      switch(e.target){
+        case all:
+          if(all.checked){
+            allLi.forEach(it => it.style.display= 'block')
+          }
+          return
+        case active:
+          if(active.checked){
+            completedLi.forEach(it => it.style.display= 'none')
+            activeLi.forEach(it => it.style.display= 'block')
+          }
+          return
+        case completed:
+          if(completed.checked){
+            activeLi.forEach(it => it.style.display= 'none')
+            completedLi.forEach(it => it.style.display= 'block')
+          }
+          return
+        case clear:
+          completedLi.forEach(it => it.parentNode.removeChild(it))
+          if(!list.querySelectorAll('input:first-child:not(:checked)').length){
+            checkAll.checked= false
+          }
+          checkAllUpdate()
+          items.textContent= list.children.length
+      }
+    })
+  </script>
+</body>
+</html>

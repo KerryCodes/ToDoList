@@ -1,0 +1,126 @@
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>todos-vue</title>
+   <style>
+     li{
+       width: 300px;
+     }
+     li span{
+       width: 80%;
+       display:inline-block
+     }
+     li button{
+       float: right;
+     }
+     .todoCompleted span{
+       opacity: 0.3;
+       text-decoration: line-through;
+       transition: opacity 0.5s;
+     }
+   </style>
+  </head>
+  <body>
+    <div id="container"></div>
+
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+      var app= new Vue({
+        el: '#container',
+        data:{
+          todoContent: '',
+          todos: [],
+          isSelectAll: false,
+          state: 'all',
+          keyId: 0,
+        },
+        computed:{
+          itemsN(){
+            return this.todos.length
+          },
+          selectAllState(){
+            return this.isSelectAll= this.todos.length && this.todos.every(it => it.isCompleted)
+          },
+          showingTodos(){
+            switch(this.state){
+              case 'all':
+                return this.todos
+              case 'active':
+                return this.todos.filter(it => !it.isCompleted)
+              case 'completed':
+                return this.todos.filter(it => it.isCompleted)
+            }
+          },
+        },
+        watch:{
+          // selectAll(newVal, oldVal){
+          //   this.todos.forEach(it => it.isCompleted= newVal)
+          // },
+          // todos:{
+          //   handler(newVal, oldVal){
+          //     // this.selectAll= this.todos.every(it => it.isCompleted)
+          //   },
+          //   deep: true,
+          // }
+        },
+        template:`
+        <div>
+          <h2>todos</h2>
+          <input type="checkbox" :checked="selectAllState" v-model="isSelectAll" @change="selectAll">
+          <input type="text" v-model.lazy="todoContent" @keyup.enter="addTodo">
+          <ul>
+            <li v-for="(todo, index) of showingTodos" :key="todo.id" :class="{todoCompleted: todo.isCompleted}">
+              <input type="checkbox" v-model="todo.isCompleted">
+              <span v-show="!todo.editing" @dblclick="editTodo(todo)" :class="{index: index}">{{todo.content}}</span>
+              <input type="text" ref="editBox" class="editTodo" v-if="todo.editing" v-model="todo.content" @blur="finishEdit(todo)" @keyup.enter="finishEdit(todo)">
+              <button @click="deleteTodo(todo)">X</button>
+            </li>
+          </ul>
+          <div v-show="todos.length">
+            <span>{{itemsN}} items left</span>
+            <label><input type="radio" name="state" v-model="state" value="all">All</label>
+            <label><input type="radio" name="state" v-model="state" value="active">Active</label>
+            <label><input type="radio" name="state" v-model="state" value="completed">Completed</label>
+            <button @click="clearCompleted">Clear completed</button>
+          </div>
+        </div>
+        `,
+        methods:{
+          addTodo(){
+            if(!this.todoContent){return}
+            this.todos.push({
+              id: this.keyId++,
+              content: this.todoContent,
+              isCompleted: false,
+              editing: false,
+            })
+            this.todoContent= ''
+          },
+          deleteTodo(todo){
+            this.todos= this.todos.filter(it=>it !== todo)
+          },
+          editTodo(todo){
+            todo.editing= true
+            Vue.nextTick(() => {
+              this.$refs.editBox[0].focus()
+            })
+          },
+          finishEdit(todo){
+            todo.editing= false
+          },
+          selectAll(){
+            this.todos.forEach(it => {it.isCompleted= this.isSelectAll})
+          },
+          clearCompleted(){
+            this.todos= this.todos.filter(it => !it.isCompleted)
+          }
+        },
+      })
+
+    </script>
+ </body>
+ </html>
